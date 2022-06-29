@@ -50,6 +50,9 @@
  *   be passed to the underlying terminals.
  */
 
+/* To restore the original fg after the highlighting */
+int original_fg = -1;
+
 /* Input parser cell. */
 struct input_cell {
 	struct grid_cell	cell;
@@ -878,6 +881,10 @@ input_parse(struct window_pane *wp)
 {
 	struct evbuffer		*evb = wp->event->input;
 
+	struct highlight_search_result search_res = {.find = 0};
+	size_t startIndex = 0;
+	size_t endIndex = 0;
+
 	input_parse_buffer(wp, EVBUFFER_DATA(evb), EVBUFFER_LENGTH(evb));
 	evbuffer_drain(evb, EVBUFFER_LENGTH(evb));
 }
@@ -890,6 +897,9 @@ input_parse_buffer(struct window_pane *wp, u_char *buf, size_t len)
 	struct screen_write_ctx		*sctx = &ictx->ctx;
 	const struct input_transition	*itr;
 	size_t				 off = 0;
+	size_t                           endIndex = 0;
+	size_t                           startIndex = 0;
+	struct highlight_search_result search_res = {.find = 0};
 
 	if (len == 0)
 		return;
@@ -914,6 +924,26 @@ input_parse_buffer(struct window_pane *wp, u_char *buf, size_t len)
 	/* Parse the input. */
 	while (off < len) {
 		ictx->ch = buf[off++];
+
+		if (off > endIndex) {
+			if (original_fg >= 0) {
+				ictx->cell.cell.fg = original_fg;
+				original_fg = -1;
+			}
+
+			search_res = find_highlight_target((u_char*)((unsigned long)buf+endIndex));
+			if (search_res.find) {
+				startIndex = endIndex + search_res.start;
+				endIndex = endIndex + search_res.end;
+			}
+		}
+
+		if (search_res.find && startIndex < off && off <= endIndex) {
+			if (original_fg == -1) {
+				original_fg = ictx->cell.cell.fg;
+			}
+			ictx->cell.cell.fg = search_res.fg;
+		}
 
 		/* Find the transition. */
 		itr = ictx->state->transitions;

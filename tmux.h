@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <termios.h>
 #include <wchar.h>
+#include <regex.h>
 
 #ifdef HAVE_UTEMPTER
 #include <utempter.h>
@@ -1131,6 +1132,22 @@ struct tty_term {
 };
 LIST_HEAD(tty_terms, tty_term);
 
+struct highlight{
+	char *regstr;
+	regex_t reg;
+	int fg;
+	int ignorecase;
+	LIST_ENTRY(highlight)	 lentry;
+};
+
+struct highlight_search_result{
+	int find;
+	off_t start;
+	off_t end;
+	int fg;
+};
+LIST_HEAD(highlightlist, highlight);
+
 struct tty {
 	struct client	*client;
 
@@ -1614,7 +1631,8 @@ enum options_table_type {
 	OPTIONS_TABLE_FLAG,
 	OPTIONS_TABLE_CHOICE,
 	OPTIONS_TABLE_STYLE,
-	OPTIONS_TABLE_COMMAND
+	OPTIONS_TABLE_COMMAND,
+	OPTIONS_TABLE_HIGHLIGHT
 };
 
 #define OPTIONS_TABLE_NONE 0
@@ -1855,6 +1873,11 @@ struct bufferevent *job_get_event(struct job *);
 void		 job_kill_all(void);
 int		 job_still_running(void);
 void		 job_print_summary(struct cmdq_item *, int);
+
+/* highlight.c */
+extern struct highlightlist all_highlights;
+int add_highlight(const char *, int, int);
+struct highlight_search_result find_highlight_target(const u_char *);
 
 /* environ.c */
 struct environ *environ_create(void);

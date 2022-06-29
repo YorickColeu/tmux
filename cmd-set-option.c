@@ -43,7 +43,7 @@ const struct cmd_entry cmd_set_option_entry = {
 	.name = "set-option",
 	.alias = "set",
 
-	.args = { "aFgopqst:uw", 1, 2 },
+	.args = { "aFgopqst:uw", 1, 4 },
 	.usage = "[-aFgopqsuw] " CMD_TARGET_PANE_USAGE " option [value]",
 
 	.target = { 't', CMD_FIND_PANE, CMD_FIND_CANFAIL },
@@ -283,6 +283,28 @@ fail:
 	return (CMD_RETURN_ERROR);
 }
 
+/* Set a highlight option. */
+struct options_entry *
+cmd_set_highlight(struct cmd *self, struct cmd_q *cmdq,
+    const struct options_table_entry *oe, struct options *oo,
+    const char *value)
+{
+	int fg, ignorecase;
+
+	if (self->args->argc < 4) {
+		cmdq_error(cmdq, "bad argument count : %d", self->args->argc);
+		return (NULL);
+	}
+
+	fg = colour_fromstring(self->args->argv[2]);
+	ignorecase = atoi(self->args->argv[3]);
+	add_highlight(value,fg, ignorecase);
+	options_set_number(oo, oe->name, fg);
+	return (0);
+
+	// return (options_set_number(oo, oe->name, fg));
+}
+
 static int
 cmd_set_option_set(struct cmd *self, struct cmdq_item *item, struct options *oo,
     struct options_entry *parent, const char *value)
@@ -353,6 +375,10 @@ cmd_set_option_set(struct cmd *self, struct cmdq_item *item, struct options *oo,
 		return (0);
 	case OPTIONS_TABLE_COMMAND:
 		break;
+	case OPTIONS_TABLE_HIGHLIGHT:
+		o = cmd_set_highlight(self, item, oe, oo, value);
+		break;
+
 	}
 	return (-1);
 }

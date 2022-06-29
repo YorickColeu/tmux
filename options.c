@@ -72,7 +72,8 @@ static struct options_entry	*options_add(struct options *, const char *);
 	    (o)->tableentry->type == OPTIONS_TABLE_KEY ||		\
 	    (o)->tableentry->type == OPTIONS_TABLE_COLOUR ||		\
 	    (o)->tableentry->type == OPTIONS_TABLE_FLAG ||		\
-	    (o)->tableentry->type == OPTIONS_TABLE_CHOICE))
+	    (o)->tableentry->type == OPTIONS_TABLE_CHOICE || \
+            (o)->tableentry->type == OPTIONS_TABLE_HIGHLIGHT))
 #define OPTIONS_IS_STYLE(o) \
 	((o)->tableentry != NULL &&					\
 	    (o)->tableentry->type == OPTIONS_TABLE_STYLE)
@@ -697,7 +698,7 @@ options_set_number(struct options *oo, const char *name, long long value)
 	}
 
 	if (!OPTIONS_IS_NUMBER(o))
-		fatalx("option %s is not a number", name);
+		fatalx("option %s is not a number, tableentry->type: %d", name, (o)->tableentry->type);
 	o->value.number = value;
 	return (o);
 }

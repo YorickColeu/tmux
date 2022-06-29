@@ -781,6 +781,11 @@ const struct options_table_entry options_table[] = {
 	  .scope = OPTIONS_TABLE_WINDOW,
 	  .default_num = 1
 	},
+	{ .name = "trigger-highlight",
+	  .type = OPTIONS_TABLE_HIGHLIGHT,
+	  .scope = OPTIONS_TABLE_WINDOW,
+	  .default_num = -1
+	},
 
 	{ .name = "xterm-keys",
 	  .type = OPTIONS_TABLE_FLAG,

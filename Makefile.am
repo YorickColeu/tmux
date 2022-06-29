@@ -134,6 +134,7 @@ dist_tmux_SOURCES = \
 	format-draw.c \
 	grid-view.c \
 	grid.c \
+	highlight.c \
 	input-keys.c \
 	input.c \
 	job.c \
